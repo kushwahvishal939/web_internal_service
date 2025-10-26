@@ -17,7 +17,12 @@
     }
   ],
   "keywords": [
-    "bedrock", "composer", "roots", "wordpress", "wp", "wp-config"
+    "bedrock",
+    "composer",
+    "roots",
+    "wordpress",
+    "wp",
+    "wp-config"
   ],
   "support": {
     "issues": "https://github.com/roots/bedrock/issues",
@@ -28,6 +33,30 @@
       "type": "composer",
       "url": "https://wpackagist.org",
       "only": ["wpackagist-plugin/*", "wpackagist-theme/*"]
+    },
+    {
+      "type": "package",
+      "package": {
+        "name": "yoast/wordpress-seo",
+        "version": "dev-trunk",
+        "source": {
+          "url": "https://github.com/Yoast/wordpress-seo.git",
+          "type": "git",
+          "reference": "trunk"
+        }
+      }
+    },
+    {
+      "type": "package",
+      "package": {
+        "name": "woocommerce/woocommerce",
+        "version": "dev-trunk",
+        "source": {
+          "url": "https://github.com/woocommerce/woocommerce.git",
+          "type": "git",
+          "reference": "trunk"
+        }
+      }
     }
   ],
   "require": {
@@ -39,7 +68,9 @@
     "roots/bedrock-disallow-indexing": "^2.0",
     "roots/wordpress": "6.8.3",
     "roots/wp-config": "1.0.0",
-    "wpackagist-theme/twentytwentyfive": "^1.0"
+    "wpackagist-theme/twentytwentyfive": "^1.0",
+    "yoast/wordpress-seo": "dev-trunk",
+    "woocommerce/woocommerce": "dev-trunk"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
