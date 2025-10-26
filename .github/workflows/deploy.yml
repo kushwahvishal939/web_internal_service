@@ -11,6 +11,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          # Checkout to the root folder, not nested
+          path: .
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -25,7 +28,7 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Composer Dependencies
-        working-directory: bedrock
+        working-directory: ./bedrock
         run: composer install --no-dev --optimize-autoloader
 
       - name: Setup Node.js
@@ -36,7 +39,7 @@ jobs:
           cache-dependency-path: bedrock/web/app/themes/sage/package-lock.json
 
       - name: Build Sage Theme Assets
-        working-directory: bedrock/web/app/themes/sage
+        working-directory: ./bedrock/web/app/themes/sage
         run: |
           npm ci
           npm run build
@@ -47,6 +50,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          path: .
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
