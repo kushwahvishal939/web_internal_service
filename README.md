@@ -1,5 +1,3 @@
-# 🚀 Automated WordPress Deployment with Bedrock, Sage, GitHub Actions & GCP
-
 This project demonstrates automated infrastructure and application deployment using **GitHub Actions**, **Bedrock**, **Sage**, **Terraform**, and **Prometheus + Grafana** for observability.
 
 ---
