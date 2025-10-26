@@ -9,54 +9,70 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Checkout main repo
       - uses: actions/checkout@v4
 
+      # Setup PHP (Bedrock requirement)
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'  # Bedrock PHP requirement
+          php-version: '8.1'
 
+      # Cache Composer dependencies
       - name: Cache Composer Dependencies
         uses: actions/cache@v4
         with:
           path: bedrock/vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('bedrock/composer.lock') }}  # Cache key: OS + lockfile hash (changes only on dep updates; efficient TTL via hash)
-          restore-keys: ${{ runner.os }}-composer-  # Fallback to broader cache
-        # Strategy: Locks vendor to exact deps; restores partial on mismatch for speed
+          key: ${{ runner.os }}-composer-${{ hashFiles('bedrock/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
+      # Install Composer dependencies
       - name: Install Composer Dependencies
-        run: cd bedrock && composer install --no-dev --optimize-autoloader  # cd to subdir; installs WP/plugins
+        working-directory: bedrock
+        run: composer install --no-dev --optimize-autoloader
 
+      # Setup Node.js for Sage theme
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # Sage LTS
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: bedrock/web/app/themes/sage/package-lock.json  # Cache key: lockfile hash for Sage assets
+          cache-dependency-path: bedrock/web/app/themes/sage/package-lock.json
 
+      # Build Sage theme assets
       - name: Build Sage Theme Assets
-        run: cd bedrock/web/app/themes/sage && npm ci && npm run build  # cd to subdir; builds in parallel to Composer (sequential but cached)
+        working-directory: bedrock/web/app/themes/sage
+        run: |
+          npm ci
+          npm run build
 
   deploy:
-    needs: build  # Wait for build
+    needs: build
     runs-on: ubuntu-latest
     steps:
+      # Checkout again for deploy
       - uses: actions/checkout@v4
 
+      # Deploy via SSH
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}  # e.g., 13.235.94.83
-          username: ${{ secrets.EC2_USER }}  # deploy
-          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Full PEM
+          host: ${{ secrets.EC2_HOST }}       # EC2 IP or DNS
+          username: ${{ secrets.EC2_USER }}   # EC2 user, e.g., deploy
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # PEM private key stored in Secrets
           script: |
-            cd /home/deploy/web_internal_service  # Your EC2 path
+            cd /home/deploy/web_internal_service
+            git reset --hard HEAD               # ensure clean working directory
             git pull origin main
             cd bedrock
             composer install --no-dev --optimize-autoloader
             cd web/app/themes/sage
             npm ci && npm run build
-            sudo chown -R www-data:www-data /home/deploy/web_internal_service/bedrock  # Apache perms
+            sudo chown -R www-data:www-data /home/deploy/web_internal_service
             sudo systemctl restart apache2
-            if ! curl -f http://localhost; then exit 1; fi  # Health check: WP up (200 OK); exit 1 triggers failure/rollback
+            # Health check: fail workflow if WP site is not responding
+            if ! curl -f http://localhost; then
+              echo "Health check failed!"
+              exit 1
+            fi
 
