@@ -3,22 +3,20 @@ name: Deploy Bedrock to EC2
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Checkout main repo
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      # Setup PHP (Bedrock requirement)
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
 
-      # Cache Composer dependencies
       - name: Cache Composer Dependencies
         uses: actions/cache@v4
         with:
@@ -26,12 +24,10 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('bedrock/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
-      # Install Composer dependencies (inside bedrock folder)
       - name: Install Composer Dependencies
         working-directory: bedrock
         run: composer install --no-dev --optimize-autoloader
 
-      # Setup Node.js for Sage theme
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -39,7 +35,6 @@ jobs:
           cache: 'npm'
           cache-dependency-path: bedrock/web/app/themes/sage/package-lock.json
 
-      # Build Sage theme assets (inside Sage folder)
       - name: Build Sage Theme Assets
         working-directory: bedrock/web/app/themes/sage
         run: |
@@ -50,40 +45,25 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      # Checkout again for deploy
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      # Deploy via SSH
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}       # EC2 IP or DNS
-          username: ${{ secrets.EC2_USER }}   # EC2 user, e.g., deploy
-          key: ${{ secrets.SSH_PRIVATE_KEY }} # PEM private key stored in Secrets
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Navigate to project folder
             cd /home/deploy/web_internal_service
-            
-            # Reset local changes and pull latest code
             git reset --hard HEAD
             git pull origin main
-
-            # Install Composer dependencies
             cd bedrock
             composer install --no-dev --optimize-autoloader
-
-            # Build Sage theme
             cd web/app/themes/sage
-            npm ci
-            npm run build
-
-            # Set proper ownership
+            npm ci && npm run build
             sudo chown -R www-data:www-data /home/deploy/web_internal_service
-
-            # Restart Apache
             sudo systemctl restart apache2
-
-            # Health check: fail workflow if site not responding
             if ! curl -f http://localhost; then
               echo "Health check failed!"
               exit 1
