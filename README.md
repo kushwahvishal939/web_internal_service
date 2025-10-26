@@ -275,9 +275,9 @@ resource "aws_instance" "monitoring_vm" {
 
 🔟 Testing & Access
 
-Frontend: http://YOUR_SERVER_IP/
+Frontend: http://13.235.94.83
 
-Admin: http://YOUR_SERVER_IP/wp/wp-admin
+Admin: http://13.235.94.83/wp/wp-admin
 
 1️⃣1️⃣ Notes / Best Practices
 
