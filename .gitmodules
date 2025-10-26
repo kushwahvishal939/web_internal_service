@@ -1,0 +1,9 @@
+[submodule "web/app/themes/sage-theme"]
+	path = web/app/themes/sage-theme
+	url = https://github.com/roots/sage.git
+[submodule "web/app/plugins/wordpress-seo"]
+	path = web/app/plugins/wordpress-seo
+	url = https://github.com/Yoast/wordpress-seo.git
+[submodule "web/app/plugins/ollie"]
+	path = web/app/plugins/ollie
+	url = https://github.com/OllieWP/ollie.git
