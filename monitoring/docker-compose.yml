@@ -35,5 +35,9 @@ services:
     container_name: blackbox-exporter
     ports:
       - "9115:9115"
+    volumes:
+      - ./blackbox.yml:/etc/blackbox_exporter/config.yml
+    command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
 volumes:
   grafana-storage:
