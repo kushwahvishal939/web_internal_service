@@ -17,32 +17,32 @@ This project showcases the ability to:
 ## 2️⃣ Project Base Setup
 
 ### 2.1 Fork & Clone Bedrock
-
+```bash
 git clone https://github.com/roots/bedrock web_internal_service
 cd web_internal_service
+```
 2.2 Install Sage Theme
 
 Clone the Sage theme under web/app/themes/:
-
+```bash
 cd web/app/themes
 git clone https://github.com/roots/sage.git sage
 cd sage
 npm install
 npm run build
-
+```
 
 ✅ Output: web/app/themes/sage/public/build/assets/
 
 2.3 Install WordPress Plugins via Composer
 
 Add plugins to composer.json in the Bedrock root:
-
+```bash
 "require": {
   "wpackagist-plugin/woocommerce": "^8.0",
   "wpackagist-plugin/wordpress-seo": "^20.0"
 }
-
-
+```
 Then run:
 
 composer update
@@ -66,37 +66,49 @@ Node.js v20+
 Composer & Git
 
 3.2 Installation Commands
+```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install nginx mysql-server php8.1-fpm php8.1-mysql php8.1-cli php8.1-curl php8.1-xml php8.1-mbstring unzip git composer -y
+```
 
 # Install Node.js v20
+```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
+```
 
 3.3 Database Setup
+```bash
 sudo mysql
 CREATE DATABASE bedrock_db;
 CREATE USER 'bedrock_user'@'localhost' IDENTIFIED BY 'StrongPassword';
 GRANT ALL PRIVILEGES ON bedrock_db.* TO 'bedrock_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
+```
 
 3.4 Configure .env
+```bash
 DB_NAME=bedrock_db
 DB_USER=bedrock_user
 DB_PASSWORD=StrongPassword
 DB_HOST=localhost
+```
 
 4️⃣ Bedrock & Sage Theme Setup
+```bash
 cd /home/deploy/web_internal_service/bedrock
 composer install
+```
 
 # Sage theme setup
+```bash
 cd web/app/themes
 git clone https://github.com/roots/sage.git sage
 cd sage
 npm install
 npm run build
+```
 
 
 ✅ Output: web/app/themes/sage/public/build/assets/
@@ -104,8 +116,9 @@ npm run build
 5️⃣ Nginx Configuration
 5.1 Create Config File
 
-/etc/nginx/sites-available/bedrock
 
+/etc/nginx/sites-available/bedrock
+```bash
 server {
     listen 80;
     listen [::]:80;
@@ -129,19 +142,26 @@ server {
         deny all;
     }
 }
+```
 
 5.2 Enable & Reload Nginx
+```bash
 sudo ln -s /etc/nginx/sites-available/bedrock /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
+```
 
 5.3 Fix Permissions
+```bash
 sudo chown -R www-data:www-data /home/deploy/web_internal_service/bedrock/web
 sudo find /home/deploy/web_internal_service/bedrock/web -type d -exec chmod 755 {} \;
 sudo find /home/deploy/web_internal_service/bedrock/web -type f -exec chmod 644 {} \;
+```
 
 6️⃣ Test PHP-FPM
+```bash
 echo "<?php phpinfo(); ?>" | sudo tee /home/deploy/web_internal_service/bedrock/web/test.php
+```
 
 
 Visit:
@@ -219,7 +239,7 @@ Provision Prometheus/Grafana via Terraform/Ansible
 9️⃣ Terraform Setup
 
 Example: main.tf
-
+```bash
 provider "aws" {
   region = "us-east-1"
 }
@@ -253,6 +273,7 @@ resource "aws_instance" "monitoring_vm" {
     Name = "Monitoring-VM"
   }
 }
+```
 
 🔟 Testing & Access
 
