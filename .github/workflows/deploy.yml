@@ -48,5 +48,5 @@ jobs:
             npm ci && npm run build
             sudo chown -R www-data:www-data /home/deploy/web_internal_service/bedrock
             sudo systemctl restart apache2
-            if ! curl -f http://localhost:80; then exit 1; fi
+            curl -f http://localhost || exit 1
 
