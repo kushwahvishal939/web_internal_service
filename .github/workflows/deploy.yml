@@ -26,7 +26,7 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('bedrock/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
-      # Install Composer dependencies
+      # Install Composer dependencies (inside bedrock folder)
       - name: Install Composer Dependencies
         working-directory: bedrock
         run: composer install --no-dev --optimize-autoloader
@@ -39,7 +39,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: bedrock/web/app/themes/sage/package-lock.json
 
-      # Build Sage theme assets
+      # Build Sage theme assets (inside Sage folder)
       - name: Build Sage Theme Assets
         working-directory: bedrock/web/app/themes/sage
         run: |
@@ -61,16 +61,29 @@ jobs:
           username: ${{ secrets.EC2_USER }}   # EC2 user, e.g., deploy
           key: ${{ secrets.SSH_PRIVATE_KEY }} # PEM private key stored in Secrets
           script: |
+            # Navigate to project folder
             cd /home/deploy/web_internal_service
-            git reset --hard HEAD               # ensure clean working directory
+            
+            # Reset local changes and pull latest code
+            git reset --hard HEAD
             git pull origin main
+
+            # Install Composer dependencies
             cd bedrock
             composer install --no-dev --optimize-autoloader
+
+            # Build Sage theme
             cd web/app/themes/sage
-            npm ci && npm run build
+            npm ci
+            npm run build
+
+            # Set proper ownership
             sudo chown -R www-data:www-data /home/deploy/web_internal_service
+
+            # Restart Apache
             sudo systemctl restart apache2
-            # Health check: fail workflow if WP site is not responding
+
+            # Health check: fail workflow if site not responding
             if ! curl -f http://localhost; then
               echo "Health check failed!"
               exit 1
