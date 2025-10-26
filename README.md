@@ -17,7 +17,7 @@ This project showcases the ability to:
 ## 2️⃣ Project Base Setup
 
 ### 2.1 Fork & Clone Bedrock
-```bash
+
 git clone https://github.com/roots/bedrock web_internal_service
 cd web_internal_service
 2.2 Install Sage Theme
