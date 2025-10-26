@@ -1,0 +1,51 @@
+name: Deploy Bedrock to EC2
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Composer Install
+        run: composer install --no-dev --optimize-autoloader
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/app/themes/sage/package-lock.json
+      - name: Build Sage Theme
+        run: cd web/app/themes/sage && npm ci && npm run build
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/html
+            sudo git pull origin main
+            sudo composer install --no-dev --optimize-autoloader
+            cd web/app/themes/sage
+            sudo npm ci
+            sudo npm run build
+            sudo chown -R www-data:www-data /var/www/html
+            sudo systemctl restart apache2
+            curl -f http://localhost || exit 1
