@@ -7,6 +7,7 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert-rules:/etc/prometheus/alert-rules
   node-exporter:
     image: prom/node-exporter
     container_name: node-exporter
@@ -39,5 +40,12 @@ services:
       - ./blackbox.yml:/etc/blackbox_exporter/config.yml
     command:
       - '--config.file=/etc/blackbox_exporter/config.yml'
+  alertmanager:
+    image: prom/alertmanager
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
 volumes:
   grafana-storage:
